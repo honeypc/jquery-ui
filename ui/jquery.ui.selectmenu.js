@@ -261,7 +261,12 @@ $.widget("ui.selectmenu", {
 				return true;
 			})
 			// this allows for using the scrollbar in an overflowed list
-			.bind( 'mousedown.selectmenu mouseup.selectmenu', function() { return false; });
+			.bind( 'mousedown.selectmenu mouseup.selectmenu', function(e) {
+				// supports custom scroll bar and other plugins which wrap the selectmenu content
+				if (e.target.hasAttribute('href') && e.target.hash==='#nogo') {
+					return false;
+				}
+			});
 
 		// needed when window is resized
 		$( window ).bind( "resize.selectmenu-" + this.ids[ 0 ], $.proxy( self.close, this ) );
