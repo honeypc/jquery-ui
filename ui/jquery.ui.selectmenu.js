@@ -393,7 +393,7 @@ $.widget("ui.selectmenu", {
 				}
 			}
 		} else {
-			$(' <li role="presentation"><a href="#nogo" tabindex="-1" role="option"></a></li>' ).appendTo( this.list );
+			$('<li role="presentation"><a href="#nogo" tabindex="-1" role="option"></a></li>' ).appendTo( this.list );
 		}
 		// we need to set and unset the CSS classes for dropdown and popup style
 		var isDropDown = ( o.style == 'dropdown' );
