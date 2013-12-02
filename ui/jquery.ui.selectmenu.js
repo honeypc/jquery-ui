@@ -414,13 +414,15 @@ $.widget("ui.selectmenu", {
 			this.list.width( o.menuWidth ? o.menuWidth : o.width - o.handleWidth );
 		}
 
-		// reset height to auto
-		this.list.css( 'height', 'auto' );
-		var listH = this.listWrap.height();
-		var winH = $( window ).height();
-		// calculate default max height
-		var maxH = o.maxHeight ? Math.min( o.maxHeight, winH ) : winH / 3;
-		if ( listH > maxH ) this.list.height( maxH );
+		// Android 2 (Gingerbread) doesn't support internal scrollable divs.
+		// Don't limit the menu height for that browser.
+		if ( !navigator.userAgent.match( /Android 2/ ) ) {
+			var listH = this.listWrap.height();
+			var winH = $( window ).height();
+			// calculate default max height
+			var maxH = o.maxHeight ? Math.min( o.maxHeight, winH ) : winH / 3;
+			if ( listH > maxH ) this.list.height( maxH );
+		}
 
 		// save reference to actionable li's (not group label li's)
 		this._optionLis = this.list.find( 'li:not(.ui-selectmenu-group)' );
