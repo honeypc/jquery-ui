@@ -509,6 +509,7 @@ $.widget("ui.selectmenu", {
 					}
 				} else {
 					nextIndex = i;
+					break;
 				}
 			}
 		}
