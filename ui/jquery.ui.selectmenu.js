@@ -336,13 +336,15 @@ $.widget("ui.selectmenu", {
 						return false;
 					})
 					.bind('mouseover.selectmenu', function( e ) {
-						// no hover if diabled
+						// no hover if disabled
 						if ( !$( this ).hasClass( 'ui-state-disabled' ) && !$( this ).parent( "ul" ).parent( "li" ).hasClass( 'ui-state-disabled' ) ) {
-							e.optionValue = self.element[ 0 ].options[ $( this ).data( 'index' ) ].value;
-							self._trigger( "hover", e, self._uiHash() );
-							self._selectedOptionLi().addClass( activeClass );
-							self._focusedOptionLi().removeClass( 'ui-selectmenu-item-focus ui-state-hover' );
-							$( this ).removeClass( 'ui-state-active' ).addClass( 'ui-selectmenu-item-focus ui-state-hover' );
+							if ( self._typeAhead_timer === undefined ) {
+								e.optionValue = self.element[ 0 ].options[ $( this ).data( 'index' ) ].value;
+								self._trigger( "hover", e, self._uiHash() );
+								self._selectedOptionLi().addClass( activeClass );
+								self._focusedOptionLi().removeClass( 'ui-selectmenu-item-focus ui-state-hover' );
+								$( this ).removeClass( 'ui-state-active' ).addClass( 'ui-selectmenu-item-focus ui-state-hover' );
+							}
 						}
 					})
 					.bind( 'mouseout.selectmenu', function( e ) {
