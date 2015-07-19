@@ -9,9 +9,15 @@ common.testWidget( "datepicker", {
 		appendTo: null,
 		buttons: [],
 		classes: {},
-		dateFormat: { date: "short" },
 		disabled: false,
 		eachDay: $.noop,
+		labels: {
+			"datePickerRole": "date picker",
+			"nextText": "Next",
+			"prevText": "Prev",
+			"weekHeader": "Wk"
+		},
+		locale: "en",
 		max: null,
 		min: null,
 		numberOfMonths: 1,

@@ -21,11 +21,12 @@
 		define( [
 			"jquery",
 			"globalize",
-			"./core",
-			"./widget",
+			"globalize/date",
+			"globalize-locales",
+			"date",
 			"./button",
-			"date"
-		], factory );
+			"./core",
+			"./button"		], factory );
 	} else {
 
 		// Browser globals
@@ -37,8 +38,14 @@ return $.widget( "ui.calendar", {
 	version: "@VERSION",
 	options: {
 		buttons: [],
-		dateFormat: { date: "short" },
 		eachDay: $.noop,
+		labels: {
+			"datePickerRole": "date picker",
+			"nextText": "Next",
+			"prevText": "Prev",
+			"weekHeader": "Wk"
+		},
+		locale: "en",
 		max: null,
 		min: null,
 		numberOfMonths: 1,
@@ -59,10 +66,12 @@ return $.widget( "ui.calendar", {
 
 	_create: function() {
 		this.id = this.element.uniqueId().attr( "id" );
-		this.labels = Globalize.translate( "datepicker" );
+		this.labels = this.options.labels;
 		this.buttonClickContext = this.element[ 0 ];
 
-		this.date = $.date( this.options.value, this.options.dateFormat );
+		this._setLocale( this.options.locale );
+
+		this.date = new $.ui.calendarDate( this.options.value, this._calendarDateOptions );
 		this.viewDate = this.date.clone();
 		this.viewDate.eachDay = this.options.eachDay;
 
@@ -165,6 +174,29 @@ return $.widget( "ui.calendar", {
 		this.activeDescendant = this.grid.find(
 			this._sanitizeSelector( "#" + id ) + " > button"
 		).addClass( "ui-state-focus" );
+	},
+
+	_setLocale: function( locale ) {
+		var globalize = new Globalize( locale ),
+			weekdayShortFormatter = globalize.dateFormatter({ pattern: "EEEEEE" }),
+			weekdayNarrowFormatter = globalize.dateFormatter({ pattern: "EEEEE" });
+
+		this._format = globalize.dateFormatter({ date: "short" });
+		this._parse = globalize.dateParser({ date: "short" });
+		this._calendarDateOptions = {
+			firstDay: globalize.cldr.supplemental.weekData.firstDay(),
+			formatWeekdayShort: function( date ) {
+
+				// Return the short weekday if its length is < 3. Otherwise, its narrow form.
+				var shortWeekday = weekdayShortFormatter( date );
+
+				return shortWeekday.length > 3 ? weekdayNarrowFormatter( date ) : shortWeekday;
+			},
+			formatWeekdayFull: globalize.dateFormatter({ pattern: "EEEE" }),
+			formatMonth: globalize.dateFormatter({ pattern: "MMMM" }),
+			formatWeekOfYear: globalize.dateFormatter({ pattern: "w" }),
+			parse: this._parse
+		};
 	},
 
 	_createCalendar: function() {
@@ -289,13 +321,14 @@ return $.widget( "ui.calendar", {
 	_buildGridHeading: function() {
 		var cells = "",
 			i = 0,
-			weekDayLength = this.viewDate.weekdays().length;
+			weekDayLength = this.viewDate.weekdays().length,
+			weekdays = this.date.weekdays();
 
 		if ( this.options.showWeek ) {
 			cells += "<th class='ui-calendar-week-col'>" + this._getTranslation( "weekHeader" ) + "</th>";
 		}
 		for ( ; i < weekDayLength; i++ ) {
-			cells += this._buildGridHeaderCell( this.date.weekdays()[ i ] );
+			cells += this._buildGridHeaderCell( weekdays[ i ] );
 		}
 
 		return "<thead role='presentation'>" +
@@ -312,8 +345,6 @@ return $.widget( "ui.calendar", {
 	},
 
 	_buildGridBody: function() {
-
-		// this.date.days() needs caching as it has O(n^2) complexity.
 		var days = this.viewDate.days(),
 			i = 0,
 			rows = "";
@@ -463,7 +494,7 @@ return $.widget( "ui.calendar", {
 	// with the prev and next links would cause loss of focus issues because the links being
 	// interacted with will disappear while focused.
 	refresh: function() {
-		this.labels = Globalize.translate( "datepicker" );
+		this.labels = this.options.labels;
 
 		// Determine which day gridcell to focus after refresh
 		// TODO: Prevent disabled cells from being focused
@@ -513,9 +544,9 @@ return $.widget( "ui.calendar", {
 
 	value: function( value ) {
 		if ( arguments.length ) {
-			this.valueAsDate( Globalize.parseDate( value, this.options.dateFormat ) );
+			this.valueAsDate( this._parse( value ) );
 		} else {
-			return Globalize.format( this.option( "value" ), this.options.dateFormat );
+			return this._format( this.option( "value" ) );
 		}
 	},
 
@@ -605,8 +636,10 @@ return $.widget( "ui.calendar", {
 			this.viewDate.eachDay = value;
 		}
 
-		if ( key === "dateFormat" ) {
-			this.date.setFormat( value );
+		if ( key === "locale" ) {
+			this._setLocale( value );
+			this.date.setAttributes( this._calendarDateOptions );
+			this.refresh();
 		}
 	}
 } );

@@ -276,6 +276,16 @@ grunt.initConfig({
 				destPrefix: "external"
 			},
 			files: {
+				"cldrjs/cldr.js": "cldrjs/dist/cldr.js",
+				"cldrjs/cldr/event.js": "cldrjs/dist/cldr/event.js",
+				"cldrjs/cldr/supplemental.js": "cldrjs/dist/cldr/supplemental.js",
+				"cldrjs/LICENSE-MIT": "cldrjs/LICENSE-MIT",
+
+				"globalize/globalize.js": "globalize/dist/globalize.js",
+				"globalize/globalize/number.js": "globalize/dist/globalize/number.js",
+				"globalize/globalize/date.js": "globalize/dist/globalize/date.js",
+				"globalize/LICENSE.txt": "globalize/LICENSE.txt",
+
 				"qunit/qunit.js": "qunit/qunit/qunit.js",
 				"qunit/qunit.css": "qunit/qunit/qunit.css",
 				"qunit/LICENSE.txt": "qunit/LICENSE.txt",

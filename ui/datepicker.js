@@ -20,6 +20,7 @@
 		define([
 			"jquery",
 			"globalize",
+			"globalize/date",
 			"./core",
 			"./widget",
 			"./calendar",
@@ -50,11 +51,21 @@ var widget = $.widget( "ui.datepicker", {
 		select: null
 	},
 
-	calendarOptions: [ "buttons", "dateFormat", "disabled", "eachDay", "max",
-		"min", "numberOfMonths", "showWeek" ],
+	calendarOptions: [ "buttons", "disabled", "eachDay", "labels", "locale",
+		"max", "min", "numberOfMonths", "showWeek" ],
 
 	_create: function() {
 		this.suppressExpandOnFocus = false;
+
+		this._setLocale( this.options.locale );
+
+		if ( $.type( this.options.max ) === "string" ) {
+			this.options.max = this._parseYMD( this.options.max );
+		}
+		if ( $.type( this.options.min ) === "string" ) {
+			this.options.min = this._parseYMD( this.options.min );
+		}
+
 		this._createCalendar();
 
 		this._on( this._inputEvents );
@@ -269,13 +280,21 @@ var widget = $.widget( "ui.datepicker", {
 		});
 	},
 
+	_setLocale: function( locale ) {
+		var globalize = new Globalize( locale );
+
+		this._format = globalize.dateFormatter({ date: "short" });
+		this._parse = globalize.dateParser({ date: "short" });
+		this._parseYMD = globalize.dateParser({ pattern: "yyyy-MM-dd" });
+	},
+
 	_buildPosition: function() {
 		return $.extend( { of: this.element }, this.options.position );
 	},
 
 	value: function( value ) {
 		if ( arguments.length ) {
-			this.valueAsDate( Globalize.parseDate( value, this.options.dateFormat ) );
+			this.valueAsDate( this._parse( value ) );
 		} else {
 			return this._getParsedValue() ? this.element.val() : null;
 		}
@@ -285,7 +304,7 @@ var widget = $.widget( "ui.datepicker", {
 		if ( arguments.length ) {
 			if ( this.calendarInstance._isValid( value ) ) {
 				this.calendarInstance.valueAsDate( value );
-				this.element.val( Globalize.format( value, this.options.dateFormat ) );
+				this.element.val( this._format( value ) );
 			}
 		} else {
 			return this._getParsedValue();
@@ -307,7 +326,7 @@ var widget = $.widget( "ui.datepicker", {
 	},
 
 	_getParsedValue: function() {
-		return Globalize.parseDate( this.element.val(), this.options.dateFormat );
+		return this._parse( this.element.val() );
 	},
 
 	_setOption: function( key, value ) {
@@ -321,7 +340,8 @@ var widget = $.widget( "ui.datepicker", {
 			this.calendar.appendTo( this._appendTo() );
 		}
 
-		if ( key === "dateFormat" ) {
+		if ( key === "locale" ) {
+			this._setLocale( value );
 			this.element.val( this.calendarInstance.value() );
 		}
 
