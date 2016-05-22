@@ -1,47 +1,55 @@
 define( [
 	"jquery",
-	"./helper",
 	"ui/widgets/datepicker"
-], function( $, testHelper ) {
+], function( $ ) {
 
-module( "datepicker: options" );
+var element, widget,
+	setupDatepicker = function() {
+		element = $( "#datepicker" ).datepicker( { show: false, hide: false } );
+		widget = element.datepicker( "widget" );
+	},
+	teardownDatepicker = function() {
+		element.datepicker( "destroy" ).val( "" );
+	};
+
+module( "datepicker: options", {
+	setup: setupDatepicker,
+	teardown: teardownDatepicker
+} );
 
 test( "appendTo", function() {
 	expect( 6 );
-	var container,
-		detached = $( "<div>" ),
-		input = $( "#datepicker" );
 
-	input.datepicker();
-	container = input.datepicker( "widget" ).parent()[ 0 ];
+	var container = widget.parent()[ 0 ],
+		detached = $( "<div>" );
+
 	equal( container, document.body, "defaults to body" );
-	input.datepicker( "destroy" );
+	teardownDatepicker();
 
-	input.datepicker( { appendTo: "#qunit-fixture" } );
-	container = input.datepicker( "widget" ).parent()[ 0 ];
+	element.datepicker( { appendTo: "#qunit-fixture" } );
+	container = element.datepicker( "widget" ).parent()[ 0 ];
 	equal( container, $( "#qunit-fixture" )[ 0 ], "child of specified element" );
-	input.datepicker( "destroy" );
+	teardownDatepicker();
 
-	input.datepicker( { appendTo: "#does-not-exist" } );
-	container = input.datepicker( "widget" ).parent()[ 0 ];
+	element.datepicker( { appendTo: "#does-not-exist" } );
+	container = element.datepicker( "widget" ).parent()[ 0 ];
 	equal( container, document.body, "set to body if element does not exist" );
-	input.datepicker( "destroy" );
+	teardownDatepicker();
 
-	input.datepicker()
+	element.datepicker()
 		.datepicker( "option", "appendTo", "#qunit-fixture" );
-	container = input.datepicker( "widget" ).parent()[ 0 ];
+	container = element.datepicker( "widget" ).parent()[ 0 ];
 	equal( container, $( "#qunit-fixture" )[ 0 ], "modified after init" );
-	input.datepicker( "destroy" );
+	teardownDatepicker();
 
-	input.datepicker( { appendTo: detached } );
-	container = input.datepicker( "widget" ).parent()[ 0 ];
+	element.datepicker( { appendTo: detached } );
+	container = element.datepicker( "widget" ).parent()[ 0 ];
 	equal( container, detached[ 0 ], "detached jQuery object" );
-	input.datepicker( "destroy" );
+	teardownDatepicker();
 
-	input.datepicker( { appendTo: detached[ 0 ] } );
-	container = input.datepicker( "widget" ).parent()[ 0 ];
+	element.datepicker( { appendTo: detached[ 0 ] } );
+	container = element.datepicker( "widget" ).parent()[ 0 ];
 	equal( container, detached[ 0 ], "detached DOM element" );
-	input.datepicker( "destroy" );
 } );
 
 test( "Pass-through options", function() {
@@ -58,14 +66,14 @@ test( "Pass-through options", function() {
 			numberOfMonths: 3,
 			showWeek: true
 		},
-		input = $( "#datepicker" ).val( "1/1/14" ).datepicker(),
-		datepickerInstance = input.datepicker( "instance" );
+		input = $( "<input>" ).val( "1/1/14" ).appendTo( "#qunit-fixture" ).datepicker(),
+		instance = input.datepicker( "instance" );
 
 	$.each( options, function( key, value ) {
 		input.datepicker( "option", key, value );
 
 		deepEqual(
-			datepickerInstance.calendar.calendar( "option", key ),
+			instance.calendar.calendar( "option", key ),
 			value,
 			"option " + key + ": correct value"
 		);
@@ -82,6 +90,7 @@ test( "Pass-through options", function() {
 
 asyncTest( "position", function( assert ) {
 	expect( 3 );
+
 	var input = $( "<input>" ).datepicker().appendTo( "body" ).css( {
 			position: "absolute",
 			top: 0,
@@ -111,31 +120,32 @@ asyncTest( "position", function( assert ) {
 test( "Stop datepicker from appearing with beforeOpen event handler", function() {
 	expect( 3 );
 
-	var input = testHelper.init( "#datepicker", {
+	element.datepicker( {
 		beforeOpen: function() {}
 	} );
 
-	input.datepicker( "open" );
-	ok( input.datepicker( "widget" ).is( ":visible" ), "beforeOpen returns nothing" );
-	input.datepicker( "close" ).datepicker( "destroy" );
+	element.datepicker( "open" );
+	ok( element.datepicker( "widget" ).is( ":visible" ), "beforeOpen returns nothing" );
+	teardownDatepicker();
 
-	input = testHelper.init( "#datepicker", {
+	setupDatepicker();
+	element.datepicker( {
 		beforeOpen: function() {
 			return true;
 		}
 	} );
-	input.datepicker( "open" );
-	ok( input.datepicker( "widget" ).is( ":visible" ), "beforeOpen returns true" );
-	input.datepicker( "close" ).datepicker( "destroy" );
+	element.datepicker( "open" );
+	ok( element.datepicker( "widget" ).is( ":visible" ), "beforeOpen returns true" );
+	teardownDatepicker();
 
-	input = testHelper.init( "#datepicker", {
+	setupDatepicker();
+	element.datepicker( {
 		beforeOpen: function() {
 			return false;
 		}
 	} );
-	input.datepicker( "open" );
-	ok( !input.datepicker( "widget" ).is( ":visible" ), "beforeOpen returns false" );
-	input.datepicker( "destroy" );
+	element.datepicker( "open" );
+	ok( !element.datepicker( "widget" ).is( ":visible" ), "beforeOpen returns false" );
 } );
 
 } );

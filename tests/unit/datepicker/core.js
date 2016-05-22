@@ -1,33 +1,40 @@
 define( [
 	"jquery",
-	"./helper",
 	"ui/widgets/datepicker"
-], function( $, testHelper ) {
+], function( $ ) {
 
-module( "datepicker: core" );
+var element, widget,
+	setupDatepicker = function() {
+		element = $( "#datepicker" ).datepicker( { show: false, hide: false } );
+		widget = element.datepicker( "widget" );
+	},
+	teardownDatepicker = function() {
+		element.datepicker( "destroy" ).val( "" );
+	};
+
+module( "datepicker: core", {
+	setup: setupDatepicker,
+	teardown: teardownDatepicker
+} );
 
 test( "input's value determines starting date", function() {
 	expect( 3 );
 
-	var input = $( "#datepicker" ).val( "1/1/14" ).datepicker(),
-		picker = input.datepicker( "widget" );
+	element = $( "<input>" ).appendTo( "#qunit-fixture" );
+	element.val( "1/1/14" ).datepicker();
+	widget = element.datepicker( "widget" );
 
-	input.datepicker( "open" );
+	element.datepicker( "open" );
 
-	equal( picker.find( ".ui-calendar-month" ).html(), "January", "correct month displayed" );
-	equal( picker.find( ".ui-calendar-year" ).html(), "2014", "correct year displayed" );
-	equal( picker.find( ".ui-state-active" ).html(), "1", "correct day highlighted" );
-
-	input.val( "" ).datepicker( "destroy" );
+	equal( widget.find( ".ui-calendar-month" ).html(), "January", "correct month displayed" );
+	equal( widget.find( ".ui-calendar-year" ).html(), "2014", "correct year displayed" );
+	equal( widget.find( ".ui-state-active" ).html(), "1", "correct day highlighted" );
 } );
 
 asyncTest( "base structure", function() {
 	expect( 5 );
 
-	var input = testHelper.initNewInput(),
-		widget = input.datepicker( "widget" );
-
-	input.focus();
+	element.focus();
 
 	setTimeout( function() {
 		ok( widget.is( ":visible" ), "Datepicker visible" );
@@ -36,87 +43,82 @@ asyncTest( "base structure", function() {
 		ok( widget.is( ".ui-datepicker" ), "Class ui-datepicker" );
 		ok( widget.is( ".ui-front" ), "Class ui-front" );
 
-		input.datepicker( "close" );
+		element.datepicker( "close" );
 		start();
 	}, 50 );
 } );
 
 asyncTest( "Keyboard handling: input", function( assert ) {
 	expect( 10 );
-	var picker, instance,
-		input = $( "#datepicker" ).datepicker();
+
+	var instance;
 
 	function step1() {
-		testHelper.init( input );
-		picker = input.datepicker( "widget" );
+		ok( !widget.is( ":visible" ), "datepicker closed" );
 
-		ok( !picker.is( ":visible" ), "datepicker closed" );
-
-		input.val( "" ).focus();
+		element.focus();
 		setTimeout( function() {
-			ok( picker.is( ":visible" ), "Datepicker opens when receiving focus" );
-			input.datepicker( "destroy" );
+			ok( widget.is( ":visible" ), "Datepicker opens when receiving focus" );
+			teardownDatepicker();
 			step2();
 		}, 100 );
 	}
 
 	function step2() {
-		testHelper.init( input );
-		picker = input.datepicker( "widget" );
+		setupDatepicker();
 
-		ok( !picker.is( ":visible" ), "datepicker closed" );
+		ok( !widget.is( ":visible" ), "datepicker closed" );
 
-		input.val( "" ).simulate( "keydown", { keyCode: $.ui.keyCode.UP } );
+		element.simulate( "keydown", { keyCode: $.ui.keyCode.UP } );
 		setTimeout( function() {
-			ok( picker.is( ":visible" ), "Keystroke up opens datepicker" );
-			input.datepicker( "destroy" );
+			ok( widget.is( ":visible" ), "Keystroke up opens datepicker" );
+			teardownDatepicker();
 			step3();
 		}, 100 );
 	}
 
 	function step3() {
-		testHelper.init( input );
-		instance = input.datepicker( "instance" );
+		setupDatepicker();
+		instance = element.datepicker( "instance" );
 
 		// Enter = Select preset date
-		input
+		element
 			.val( "1/1/14" )
 			.datepicker( "refresh" )
 			.datepicker( "open" )
 			.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER } );
-		assert.dateEqual( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
+		assert.dateEqual( element.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
 			"Keystroke enter - preset" );
 
-		input
+		element
 			.val( "" )
 			.datepicker( "open" );
 		ok( instance.isOpen, "datepicker is open before escape" );
 
-		input.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE } );
+		element.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE } );
 		ok( !instance.isOpen, "escape closes the datepicker" );
 
-		input
+		element
 			.val( "1/1/14" )
 			.datepicker( "open" )
 			.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE } );
-		assert.dateEqual( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
+		assert.dateEqual( element.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
 			"Keystroke esc - preset" );
 
-		input
+		element
 			.val( "1/1/14" )
 			.datepicker( "open" )
 			.simulate( "keydown", { ctrlKey: true, keyCode: $.ui.keyCode.PAGE_UP } )
 			.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE } );
-		assert.dateEqual( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
+		assert.dateEqual( element.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
 			"Keystroke esc - abandoned" );
 
-		input
+		element
 			.val( "1/2/14" )
 			.simulate( "keyup" );
-		assert.dateEqual( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 2 ),
+		assert.dateEqual( element.datepicker( "valueAsDate" ), new Date( 2014, 0, 2 ),
 			"Picker updated as user types into input" );
 
-		input.datepicker( "destroy" );
 		start();
 	}
 
@@ -131,37 +133,34 @@ test( "ARIA", function() {
 asyncTest( "mouse", function( assert ) {
 	expect( 4 );
 
-	var input = testHelper.init( $( "#datepicker" ).val( "" ) ),
-		picker = input.datepicker( "widget" );
-
-	input.datepicker( "open" );
+	element.datepicker( "open" );
 
 	setTimeout( function() {
-		input.val( "4/4/08" ).datepicker( "refresh" ).datepicker( "open" );
-		$( ".ui-calendar-calendar tbody button:contains(12)", picker ).simulate( "mousedown", {} );
+		element.val( "4/4/08" ).datepicker( "refresh" ).datepicker( "open" );
+		$( ".ui-calendar-calendar tbody button:contains(12)", widget ).simulate( "mousedown", {} );
 		assert.dateEqual(
-			input.datepicker( "valueAsDate" ),
+			element.datepicker( "valueAsDate" ),
 			new Date( 2008, 4 - 1, 12 ),
 			"Mouse click - preset"
 		);
 
-		input.val( "" ).datepicker( "refresh" );
-		input.simulate( "click" );
-		strictEqual( input.datepicker( "valueAsDate" ), null, "Mouse click - close" );
+		element.val( "" ).datepicker( "refresh" );
+		element.simulate( "click" );
+		strictEqual( element.datepicker( "valueAsDate" ), null, "Mouse click - close" );
 
-		input.val( "4/4/08" ).datepicker( "refresh" ).datepicker( "open" );
-		input.simulate( "click" );
+		element.val( "4/4/08" ).datepicker( "refresh" ).datepicker( "open" );
+		element.simulate( "click" );
 		assert.dateEqual(
-			input.datepicker( "valueAsDate" ),
+			element.datepicker( "valueAsDate" ),
 			new Date( 2008, 4 - 1, 4 ),
 			"Mouse click - close + preset"
 		);
 
-		input.val( "4/4/08" ).datepicker( "refresh" ).datepicker( "open" );
-		picker.find( "a.ui-calendar-prev" ).simulate( "click" );
-		input.simulate( "click" );
+		element.val( "4/4/08" ).datepicker( "refresh" ).datepicker( "open" );
+		widget.find( "a.ui-calendar-prev" ).simulate( "click" );
+		element.simulate( "click" );
 		assert.dateEqual(
-			input.datepicker( "valueAsDate" ),
+			element.datepicker( "valueAsDate" ),
 			new Date( 2008, 4 - 1, 4 ),
 			"Mouse click - abandoned"
 		);

@@ -1,15 +1,27 @@
 define( [
 	"jquery",
-	"./helper",
 	"ui/widgets/datepicker"
-], function( $, testHelper ) {
+], function( $ ) {
 
-module( "datepicker: methods" );
+var element, widget,
+	setupDatepicker = function() {
+		element = $( "#datepicker" ).datepicker( { show: false, hide: false } );
+		widget = element.datepicker( "widget" );
+	},
+	teardownDatepicker = function() {
+		element.datepicker( "destroy" ).val( "" );
+	};
+
+module( "datepicker: methods", {
+	setup: setupDatepicker,
+	teardown: teardownDatepicker
+} );
 
 test( "destroy", function( assert ) {
 	expect( 3 );
 
-	var input = $( "#datepicker" );
+	var input = $( "<input>" ).appendTo( "#qunit-fixture" );
+
 	assert.domEqual( input, function() {
 		input.datepicker();
 		ok( input.attr( "aria-owns" ), "aria-owns attribute added" );
@@ -21,108 +33,93 @@ test( "destroy", function( assert ) {
 test( "enable / disable", function() {
 	expect( 10 );
 
-	var input = testHelper.init( "#datepicker" ),
-		calendar = input.datepicker( "widget" );
+	element.datepicker( "disable" );
+	ok( element.datepicker( "option", "disabled" ), "disabled option is set" );
+	ok( widget.hasClass( "ui-datepicker-disabled" ), "has disabled widget class name" );
+	ok( element.hasClass( "ui-state-disabled" ), "has disabled state class name" );
+	equal( element.attr( "aria-disabled" ), "true", "has ARIA disabled" );
+	equal( element.attr( "disabled" ), "disabled", "input disabled" );
 
-	input.datepicker( "disable" );
-	ok( input.datepicker( "option", "disabled" ), "disabled option is set" );
-	ok( calendar.hasClass( "ui-datepicker-disabled" ), "has disabled widget class name" );
-	ok( input.hasClass( "ui-state-disabled" ), "has disabled state class name" );
-	equal( input.attr( "aria-disabled" ), "true", "has ARIA disabled" );
-	equal( input.attr( "disabled" ), "disabled", "input disabled" );
-
-	input.datepicker( "enable" );
-	ok( !input.datepicker( "option", "disabled" ), "enabled after enable() call" );
-	ok( !calendar.hasClass( "ui-datepicker-disabled" ), "no longer has disabled widget class name" );
-	ok( !input.hasClass( "ui-state-disabled" ), "no longer has disabled state class name" );
-	equal( input.attr( "aria-disabled" ), "false", "no longer has ARIA disabled" );
-	equal( input.attr( "disabled" ), undefined, "input no longer disabled" );
+	element.datepicker( "enable" );
+	ok( !element.datepicker( "option", "disabled" ), "enabled after enable() call" );
+	ok( !widget.hasClass( "ui-datepicker-disabled" ), "no longer has disabled widget class name" );
+	ok( !element.hasClass( "ui-state-disabled" ), "no longer has disabled state class name" );
+	equal( element.attr( "aria-disabled" ), "false", "no longer has ARIA disabled" );
+	equal( element.attr( "disabled" ), undefined, "input no longer disabled" );
 } );
 
 test( "widget", function() {
 	expect( 1 );
 
-	var actual = $( "#datepicker" ).datepicker().datepicker( "widget" );
-	deepEqual( $( "body > .ui-front" )[ 0 ],  actual[ 0 ] );
-	actual.remove();
+	deepEqual( $( "body > .ui-front" )[ 0 ],  widget[ 0 ] );
+	widget.remove();
 } );
 
 test( "open / close", function() {
 	expect( 7 );
 
-	var input = testHelper.initNewInput( { show: false, hide: false } ),
-		calendar = input.datepicker( "widget" );
+	ok( widget.is( ":hidden" ), "calendar hidden on init" );
 
-	ok( calendar.is( ":hidden" ), "calendar hidden on init" );
+	element.datepicker( "open" );
+	ok( widget.is( ":visible" ), "open: calendar visible" );
+	equal( widget.attr( "aria-hidden" ), "false", "open: calendar aria-hidden" );
+	equal( widget.attr( "aria-expanded" ), "true", "close: calendar aria-expanded" );
 
-	input.datepicker( "open" );
-	ok( calendar.is( ":visible" ), "open: calendar visible" );
-	equal( calendar.attr( "aria-hidden" ), "false", "open: calendar aria-hidden" );
-	equal( calendar.attr( "aria-expanded" ), "true", "close: calendar aria-expanded" );
-
-	input.datepicker( "close" );
-	ok( !calendar.is( ":visible" ), "close: calendar hidden" );
-	equal( calendar.attr( "aria-hidden" ), "true", "close: calendar aria-hidden" );
-	equal( calendar.attr( "aria-expanded" ), "false", "close: calendar aria-expanded" );
+	element.datepicker( "close" );
+	ok( !widget.is( ":visible" ), "close: calendar hidden" );
+	equal( widget.attr( "aria-hidden" ), "true", "close: calendar aria-hidden" );
+	equal( widget.attr( "aria-expanded" ), "false", "close: calendar aria-expanded" );
 } );
 
 test( "value", function() {
 	expect( 4 );
 
-	var input = $( "#datepicker" ).datepicker(),
-		picker = input.datepicker( "widget" );
+	element.datepicker( "value", "1/1/14" );
+	equal( element.val(), "1/1/14", "input's value set" );
 
-	input.datepicker( "value", "1/1/14" );
-	equal( input.val(), "1/1/14", "input's value set" );
-
-	input.datepicker( "open" );
+	element.datepicker( "open" );
 	ok(
-		picker.find( "button[data-timestamp]" ).eq( 0 ).hasClass( "ui-state-active" ),
+		widget.find( "button[data-timestamp]" ).eq( 0 ).hasClass( "ui-state-active" ),
 		"first day marked as selected"
 	);
-	equal( input.datepicker( "value" ), "1/1/14", "getter" );
+	equal( element.datepicker( "value" ), "1/1/14", "getter" );
 
-	input.val( "abc" );
-	strictEqual( input.datepicker( "value" ), null, "Invalid values should return null." );
+	element.val( "abc" );
+	strictEqual( element.datepicker( "value" ), null, "Invalid values should return null." );
 } );
 
 test( "valueAsDate", function( assert ) {
 	expect( 6 );
 
-	var input = testHelper.init( "#datepicker" ),
-		picker = input.datepicker( "widget" ),
-		date1 = new Date( 2008, 6 - 1, 4 );
+	var date = new Date( 2008, 6 - 1, 4 );
 
-	input.datepicker( "valueAsDate", new Date( 2014, 0, 1 ) );
-	equal( input.val(), "1/1/14", "Input's value set" );
+	element.datepicker( "valueAsDate", new Date( 2014, 0, 1 ) );
+	equal( element.val(), "1/1/14", "Input's value set" );
 	ok(
-		picker.find( "button[data-timestamp]" ).eq( 0 ).hasClass( "ui-state-active" ),
+		widget.find( "button[data-timestamp]" ).eq( 0 ).hasClass( "ui-state-active" ),
 		"First day marked as selected"
 	);
-	assert.dateEqual( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ), "Getter" );
+	assert.dateEqual( element.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ), "Getter" );
 
-	input.val( "a/b/c" );
-	equal( input.datepicker( "valueAsDate" ), null, "Invalid dates return null" );
+	element.val( "a/b/c" );
+	equal( element.datepicker( "valueAsDate" ), null, "Invalid dates return null" );
 
-	input.val( "" ).datepicker( "destroy" );
-	input = testHelper.init( "#datepicker" );
+	teardownDatepicker();
+	setupDatepicker();
 
-	strictEqual( input.datepicker( "valueAsDate" ), null, "Set date - default" );
-	input.datepicker( "valueAsDate", date1 );
-	assert.dateEqual( input.datepicker( "valueAsDate" ), date1, "Set date - 2008-06-04" );
+	strictEqual( element.datepicker( "valueAsDate" ), null, "Set date - default" );
+	element.datepicker( "valueAsDate", date );
+	assert.dateEqual( element.datepicker( "valueAsDate" ), date, "Set date - 2008-06-04" );
 } );
 
 test( "isValid", function() {
 	expect( 2 );
-	var input = $( "#datepicker" ).datepicker();
 
-	input.val( "1/1/14" );
-	ok( input.datepicker( "isValid" ) );
+	element.val( "1/1/14" );
+	ok( element.datepicker( "isValid" ) );
 
-	input.val( "1/1/abc" );
-	ok( !input.datepicker( "isValid" ) );
-
-	input.datepicker( "destroy" );
+	element.val( "1/1/abc" );
+	ok( !element.datepicker( "isValid" ) );
 } );
 
 } );
