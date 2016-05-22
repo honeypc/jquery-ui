@@ -3,20 +3,30 @@ define( [
 	"ui/widgets/calendar"
 ], function( $ ) {
 
-module( "calendar: methods" );
+var element, widget;
+
+module( "calendar: methods", {
+	setup: function() {
+		element = $( "#calendar" ).calendar();
+		widget = element.calendar( "widget" );
+	},
+	teardown: function() {
+		element.calendar( "destroy" );
+	}
+} );
 
 test( "destroy", function( assert ) {
 	expect( 1 );
 
-	assert.domEqual( "#calendar", function() {
-		$( "#calendar" ).calendar().calendar( "destroy" );
+	var div = $( "<div>" ).appendTo( "#qunit-fixture" );
+
+	assert.domEqual( div, function() {
+		div.calendar().calendar( "destroy" );
 	} );
 } );
 
 test( "enable / disable", function() {
 	expect( 8 );
-
-	var element = $( "#calendar" ).calendar();
 
 	element.calendar( "disable" );
 	ok( element.calendar( "option", "disabled" ), "disabled option is set" );
@@ -34,15 +44,11 @@ test( "enable / disable", function() {
 test( "widget", function() {
 	expect( 1 );
 
-	var element = $( "#calendar" ).calendar(),
-		widget = element.calendar( "widget" );
-
 	strictEqual( widget[ 0 ],  element[ 0 ] );
 } );
 
 test( "value", function() {
 	expect( 3 );
-	var element = $( "#calendar" ).calendar();
 
 	element.calendar( "value", "1/1/14" );
 	ok( element.find( "button[data-timestamp]:first" )
@@ -59,7 +65,6 @@ test( "valueAsDate", function( assert ) {
 	expect( 11 );
 
 	var minDate, maxDate, dateAndTimeToSet, dateAndTimeClone,
-		element = $( "#calendar" ).calendar(),
 		date1 = new Date( 2008, 6 - 1, 4 ),
 		date2;
 
@@ -71,15 +76,13 @@ test( "valueAsDate", function( assert ) {
 	assert.dateEqual( element.calendar( "valueAsDate" ), new Date( 2014, 0, 1 ), "Getter" );
 
 	element.calendar( "destroy" );
-
 	element.calendar();
 	equal( element.calendar( "valueAsDate" ), null, "Set date - default" );
 
 	element.calendar( "valueAsDate", date1 );
 	assert.dateEqual( element.calendar( "valueAsDate" ), date1, "Set date - 2008-06-04" );
 
-	// With minimum/maximum
-	element = $( "#calendar" ).calendar();
+	// With minimum / maximum
 	date1 = new Date( 2008, 1 - 1, 4 );
 	date2 = new Date( 2008, 6 - 1, 4 );
 	minDate = new Date( 2008, 2 - 1, 29 );

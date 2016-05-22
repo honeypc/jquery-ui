@@ -4,27 +4,34 @@ define( [
 	"ui/widgets/calendar"
 ], function( $, testHelper ) {
 
-module( "calendar: events" );
+var element;
+
+module( "calendar: events", {
+	setup: function() {
+		element = $( "#calendar" ).calendar();
+	}
+} );
 
 asyncTest( "select", function() {
 	expect( 6 );
 
-	var message, eventType,
-		element = $( "#calendar" ).calendar( {
-			select: function( event ) {
-				ok( true, "select event fired " + message );
-				equal(
-					event.type,
-					"calendarselect",
-					"select event " + message
-				);
-				equal(
-					event.originalEvent.type,
-					eventType,
-					"select originalEvent " + message
-				);
-			}
-		} );
+	var message, eventType;
+
+	element.calendar( {
+		select: function( event ) {
+			ok( true, "select event fired " + message );
+			equal(
+				event.type,
+				"calendarselect",
+				"select event " + message
+			);
+			equal(
+				event.originalEvent.type,
+				eventType,
+				"select originalEvent " + message
+			);
+		}
+	} );
 
 	function step1() {
 		setTimeout( function() {

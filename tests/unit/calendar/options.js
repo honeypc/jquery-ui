@@ -3,7 +3,17 @@ define( [
 	"ui/widgets/calendar"
 ], function( $ ) {
 
-module( "calendar: options" );
+var element, widget;
+
+module( "calendar: options", {
+	setup: function() {
+		element = $( "#calendar" ).calendar();
+		widget = element.calendar( "widget" );
+	},
+	teardown: function() {
+		element.calendar( "destroy" );
+	}
+} );
 
 test( "buttons", function() {
 	expect( 21 );
@@ -20,10 +30,10 @@ test( "buttons", function() {
 				equal( this, element[ 0 ], "context of callback" );
 				equal( event.target, button[ 1 ], "event target" );
 			}
-		},
-		element = $( "#calendar" ).calendar( { buttons: buttons } );
+		};
 
-	button = element.calendar( "widget" ).find( ".ui-calendar-buttonpane button" );
+	element.calendar( { buttons: buttons } );
+	button = widget.find( ".ui-calendar-buttonpane button" );
 	equal( button.length, 2, "number of buttons" );
 
 	i = 0;
@@ -71,32 +81,31 @@ test( "buttons", function() {
 	} );
 
 	element.calendar( "option", "buttons", null );
-	button = element.calendar( "widget" ).find( ".ui-calendar-buttonpane button" );
+	button = widget.find( ".ui-calendar-buttonpane button" );
 	equal( button.length, 0, "all buttons have been removed" );
 	equal( element.find( ".ui-calendar-buttonset" ).length, 0, "buttonset has been removed" );
 	equal( element.hasClass( "ui-calendar-buttons" ), false, "calendar element removes class about having buttons" );
-
-	element.remove();
 } );
 
 test( "buttons - advanced", function() {
 	expect( 7 );
 
-	var buttons,
-		element = $( "#calendar" ).calendar( {
-			buttons: [ {
-				text: "a button",
-				"class": "additional-class",
-				id: "my-button-id",
-				click: function() {
-					equal( this, element[ 0 ], "correct context" );
-				},
-				icon: "ui-icon-cancel",
-				showLabel: false
-			} ]
-		} );
+	var buttons;
 
-	buttons = element.calendar( "widget" ).find( ".ui-calendar-buttonpane button" );
+	element.calendar( {
+		buttons: [ {
+			text: "a button",
+			"class": "additional-class",
+			id: "my-button-id",
+			click: function() {
+				equal( this, element[ 0 ], "correct context" );
+			},
+			icon: "ui-icon-cancel",
+			showLabel: false
+		} ]
+	} );
+
+	buttons = widget.find( ".ui-calendar-buttonpane button" );
 	equal( buttons.length, 1, "correct number of buttons" );
 	equal( buttons.attr( "id" ), "my-button-id", "correct id" );
 	equal ( $.trim( buttons.text() ), "a button", "correct label" );
@@ -104,17 +113,14 @@ test( "buttons - advanced", function() {
 	equal( buttons.button( "option", "icon" ), "ui-icon-cancel" );
 	equal( buttons.button( "option", "showLabel" ), false );
 	buttons.click();
-
-	element.remove();
 } );
 
 test( "dateFormat", function() {
 	expect( 2 );
-	var element = $( "#calendar" ).calendar();
 
 	element.calendar( "value", "1/1/14" );
 
-	element.calendar( "widget" ).find( "td[id]:first button" ).trigger( "mousedown" );
+	widget.find( "td[id]:first button" ).trigger( "mousedown" );
 	equal( element.calendar( "value" ), "1/1/14", "default formatting" );
 
 	element.calendar( "option", "dateFormat", { date: "full" } );
@@ -123,78 +129,71 @@ test( "dateFormat", function() {
 
 test( "eachDay", function() {
 	expect( 5 );
+
 	var timestamp,
-		input = $( "#calendar" ).calendar(),
-		picker = input.calendar( "widget" ),
-		firstCell = picker.find( "td[id]:first" );
+		firstCell = widget.find( "td[id]:first" );
 
 	equal( firstCell.find( "button" ).length, 1, "days are selectable by default" );
 	timestamp = parseInt( firstCell.find( "button" ).attr( "data-timestamp" ), 10 );
 	equal( new Date( timestamp ).getDate(), 1, "first available day is the 1st by default" );
 
 	// Do not render the 1st of the month
-	input.calendar( "option", "eachDay", function( day ) {
+	element.calendar( "option", "eachDay", function( day ) {
 		if ( day.date === 1 ) {
 			day.render = false;
 		}
 	} );
-	firstCell = picker.find( "td[id]:first" );
+	firstCell = widget.find( "td[id]:first" );
 	timestamp = parseInt( firstCell.find( "button" ).attr( "data-timestamp" ), 10 );
 	equal( new Date( timestamp ).getDate(), 2, "first available day is the 2nd" );
 
 	// Display the 1st of the month but make it not selectable.
-	input.calendar( "option", "eachDay", function( day ) {
+	element.calendar( "option", "eachDay", function( day ) {
 		if ( day.date === 1 ) {
 			day.selectable = false;
 		}
 	} );
-	firstCell = picker.find( "td[id]:first" );
+	firstCell = widget.find( "td[id]:first" );
 	ok( firstCell.find( "button" ).prop( "disabled" ), "the 1st is not selectable" );
 
-	input.calendar( "option", "eachDay", function( day ) {
+	element.calendar( "option", "eachDay", function( day ) {
 		if ( day.date === 1 ) {
 			day.extraClasses = "ui-custom";
 		}
 	} );
-	ok( picker.find( "td[id]:first button" ).hasClass( "ui-custom" ), "extraClasses applied" );
-
-	input.calendar( "destroy" );
+	ok( widget.find( "td[id]:first button" ).hasClass( "ui-custom" ), "extraClasses applied" );
 } );
 
 test( "showWeek", function() {
 	expect( 7 );
-	var input = $( "#calendar" ).calendar(),
-		container = input.calendar( "widget" );
 
-	equal( container.find( "thead th" ).length, 7, "just 7 days, no column cell" );
-	equal( container.find( ".ui-calendar-week-col" ).length, 0,
+	equal( widget.find( "thead th" ).length, 7, "just 7 days, no column cell" );
+	equal( widget.find( ".ui-calendar-week-col" ).length, 0,
 		"no week column cells present" );
-	input.calendar( "destroy" );
+	element.calendar( "destroy" );
 
-	input = $( "#calendar" ).calendar( { showWeek: true } );
-	container = input.calendar( "widget" );
-	equal( container.find( "thead th" ).length, 8, "7 days + a column cell" );
-	ok( container.find( "thead th:first" ).is( ".ui-calendar-week-col" ),
+	element.calendar( { showWeek: true } );
+	widget = element.calendar( "widget" );
+	equal( widget.find( "thead th" ).length, 8, "7 days + a column cell" );
+	ok( widget.find( "thead th:first" ).is( ".ui-calendar-week-col" ),
 		"first cell should have ui-datepicker-week-col class name" );
-	equal( container.find( ".ui-calendar-week-col" ).length,
-		container.find( "tr" ).length, "one week cell for each week" );
-	input.calendar( "destroy" );
+	equal( widget.find( ".ui-calendar-week-col" ).length,
+		widget.find( "tr" ).length, "one week cell for each week" );
+	element.calendar( "destroy" );
 
-	input = $( "#calendar" ).calendar();
-	container = input.calendar( "widget" );
-	equal( container.find( "thead th" ).length, 7, "no week column" );
-	input.calendar( "option", "showWeek", true );
-	equal( container.find( "thead th" ).length, 8, "supports changing option after init" );
+	element.calendar();
+	widget = element.calendar( "widget" );
+	equal( widget.find( "thead th" ).length, 7, "no week column" );
+	element.calendar( "option", "showWeek", true );
+	equal( widget.find( "thead th" ).length, 8, "supports changing option after init" );
 } );
 
 test( "min / max", function( assert ) {
 	expect( 17 );
 
 	// With existing date
-	var element = $( "#calendar" ).calendar(),
-		container = element.calendar( "widget" ),
-		prevButton = container.find( ".ui-calendar-prev" ),
-		nextButton = container.find( ".ui-calendar-next" ),
+	var prevButton = widget.find( ".ui-calendar-prev" ),
+		nextButton = widget.find( ".ui-calendar-next" ),
 		minDate = new Date( 2008, 2 - 1, 29 ),
 		maxDate = new Date( 2008, 12 - 1, 7 );
 
@@ -269,42 +268,47 @@ test( "min / max", function( assert ) {
 
 test( "numberOfMonths", function() {
 	expect( 6 );
-	var date = new Date( 2015, 8 - 1, 1 ),
-		input = $( "#calendar" ).calendar( {
+
+	var date = new Date( 2015, 8 - 1, 1 );
+
+	// Number of month option does not work after init
+	element
+		.calendar( "destroy" )
+		.calendar( {
 			numberOfMonths: 3,
 			value: date
-		} ),
-		container = input.calendar( "widget" );
+		} );
+	widget = element.calendar( "widget" );
 
-	equal( container.find( ".ui-calendar-group" ).length, 3, "3 calendar grids" );
+	equal( widget.find( ".ui-calendar-group" ).length, 3, "3 calendar grids" );
 	equal(
-		container.find( "tbody:first td[id]:first" ).attr( "id" ),
+		widget.find( "tbody:first td[id]:first" ).attr( "id" ),
 		"calendar-2015-7-1",
 		"Correct id set for first day of first grid"
 	);
 	equal(
-		container.find( "tbody:last td[id]:last" ).attr( "id" ),
+		widget.find( "tbody:last td[id]:last" ).attr( "id" ),
 		"calendar-2015-9-31",
 		"Correct id set for last day of third grid"
 	);
 
 	// Test for jumping in weekday rendering after click on last day of last grid
-	container.find( "tbody:last td[id]:last button" ).trigger( "mousedown" );
-	equal( container.find( "thead:last th:last" ).text(), "Sa",
+	widget.find( "tbody:last td[id]:last button" ).trigger( "mousedown" );
+	equal( widget.find( "thead:last th:last" ).text(), "Sa",
 		"After mousedown last month: Last day is Saturday"
 	);
 
 	// Test if using cursor to go to the next / prev month advances three month
 	// Focus doesn't work here so we use an additional mouse down event
-	container.find( "tbody:first td[id]:first button" ).trigger( "mousedown" );
+	widget.find( "tbody:first td[id]:first button" ).trigger( "mousedown" );
 	$( document.activeElement ).simulate( "keydown", { keyCode: $.ui.keyCode.LEFT } );
-	equal( container.find( ".ui-calendar-month:first" ).text(), "May",
+	equal( widget.find( ".ui-calendar-month:first" ).text(), "May",
 		"After move to previous month: First month is May"
 	);
 
-	container.find( "tbody:last td[id]:last button" ).trigger( "mousedown" );
+	widget.find( "tbody:last td[id]:last button" ).trigger( "mousedown" );
 	$( document.activeElement ).simulate( "keydown", { keyCode: $.ui.keyCode.RIGHT } );
-	equal( container.find( ".ui-calendar-month:last" ).text(), "October",
+	equal( widget.find( ".ui-calendar-month:last" ).text(), "October",
 		"After move to next month: Last month is October"
 	);
 } );

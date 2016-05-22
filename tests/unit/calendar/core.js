@@ -4,27 +4,35 @@ define( [
 	"ui/widgets/calendar"
 ], function( $, testHelper ) {
 
-module( "calendar: core" );
+var element, widget;
+
+module( "calendar: core", {
+	setup: function() {
+		element = $( "#calendar" ).calendar();
+		widget = element.calendar( "widget" );
+	},
+	teardown: function() {
+		element.calendar( "destroy" );
+	}
+} );
 
 test( "base structure", function() {
 	expect( 28 );
 
-	var buttons, header, title, table, thead, week, child, buttonpane,
-		element = $( "#calendar" ).calendar(),
-		dp = element.calendar( "widget" );
+	var buttons, header, title, table, thead, week, child, buttonpane;
 
 	function step1() {
-		ok( !dp.is( ".ui-calendar-rtl" ), "Structure - not right-to-left" );
-		ok( !dp.is( ".ui-calendar-multi" ), "Structure - not multi-month" );
-		equal( dp.children().length, 3, "Structure - child count (header, calendar)" );
+		ok( !widget.is( ".ui-calendar-rtl" ), "Structure - not right-to-left" );
+		ok( !widget.is( ".ui-calendar-multi" ), "Structure - not multi-month" );
+		equal( widget.children().length, 3, "Structure - child count (header, calendar)" );
 
-		buttons = dp.children( ":first" );
+		buttons = widget.children( ":first" );
 		ok( buttons.is( "div.ui-calendar-header-buttons" ), "Structure - header button division" );
 		equal( buttons.children().length, 2, "Structure - header buttons child count" );
 		ok( buttons.children( ":first" ).is( ".ui-calendar-prev" ) && buttons.children( ":first" ).html() !== "", "Structure - prev link" );
 		ok( buttons.children( ":last" ).is( ".ui-calendar-next" ) && buttons.children( ":last" ).html() !== "", "Structure - next link" );
 
-		header = dp.children( ":eq(1)" );
+		header = widget.children( ":eq(1)" );
 		ok( header.is( "div.ui-calendar-header" ), "Structure - header division" );
 		equal( header.children().length, 1, "Structure - header child count" );
 
@@ -34,7 +42,7 @@ test( "base structure", function() {
 		ok( title.children( ":first" ).is( "span.ui-calendar-month" ) && title.children( ":first" ).text() !== "", "Structure - month text" );
 		ok( title.children( ":last" ).is( "span.ui-calendar-year" ) && title.children( ":last" ).text() !== "", "Structure - year text" );
 
-		table = dp.children( ":eq(2)" );
+		table = widget.children( ":eq(2)" );
 		ok( table.is( "table.ui-calendar-calendar" ), "Structure - month table" );
 		ok( table.children( ":first" ).is( "thead" ), "Structure - month table thead" );
 
@@ -57,9 +65,9 @@ test( "base structure", function() {
 			"test button": function() {}
 		} );
 
-		equal( dp.children().length, 4, "Structure buttons - child count (header buttons, header, calendar, buttonpane)" );
+		equal( widget.children().length, 4, "Structure buttons - child count (header buttons, header, calendar, buttonpane)" );
 
-		buttonpane = dp.children( ".ui-calendar-buttonpane" );
+		buttonpane = widget.children( ".ui-calendar-buttonpane" );
 		equal( buttonpane.children( "div.ui-calendar-buttonset" ).length, 1, "Structure buttons - buttonset" );
 		equal( buttonpane.find( "button.ui-button:first" ).text(), "test", "Structure buttons - buttonset" );
 		equal( buttonpane.find( "button.ui-button:eq(1)" ).text(), "test button", "Structure buttons - buttonset" );
@@ -72,15 +80,13 @@ test( "base structure", function() {
 
 		// Multi-month 2
 		element = $( "#calendar" ).calendar( { numberOfMonths: 2 } );
-		dp = element.calendar( "widget" );
+		widget = element.calendar( "widget" );
 
-		ok( dp.is( ".ui-calendar-multi" ), "Structure multi [2] - multi-month" );
-		equal( dp.children().length, 4, "Structure multi [2] - child count" );
+		ok( widget.is( ".ui-calendar-multi" ), "Structure multi [2] - multi-month" );
+		equal( widget.children().length, 4, "Structure multi [2] - child count" );
 
-		child = dp.children( ":eq(3)" );
+		child = widget.children( ":eq(3)" );
 		ok( child.is( "div.ui-calendar-row-break" ), "Structure multi [2] - row break" );
-
-		element.calendar( "destroy" );
 	}
 
 	step1();
@@ -89,8 +95,7 @@ test( "base structure", function() {
 test( "Localization", function() {
 	expect( 10 );
 
-	var element = $( "#calendar" ),
-		date = new Date( 2014, 0, 1 ),
+	var date = new Date( 2014, 0, 1 ),
 		optionsDe = {
 			locale: "de",
 			labels: {
@@ -139,8 +144,6 @@ test( "Localization", function() {
 
 asyncTest( "keyboard handling", function( assert ) {
 	expect( 10 );
-
-	var element = $( "#calendar" );
 
 	function step1() {
 		element.calendar( { value: new Date( 2014, 1 - 1, 1 ) } );
@@ -301,7 +304,6 @@ asyncTest( "keyboard handling", function( assert ) {
 				new Date( 2016, 2 - 1, 29 ),
 				"Keystroke Page Down and leap years"
 			);
-			element.calendar( "destroy" );
 			start();
 		}, 50 );
 	}
@@ -312,8 +314,7 @@ asyncTest( "keyboard handling", function( assert ) {
 asyncTest( "mouse", function( assert ) {
 	expect( 6 );
 
-	var element = $( "#calendar" ).calendar(),
-		date = new Date();
+	var date = new Date();
 
 	function step1() {
 		$( "tbody button:contains(10)", element ).simulate( "mousedown" );
