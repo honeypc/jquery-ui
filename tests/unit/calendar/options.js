@@ -313,6 +313,21 @@ test( "numberOfMonths", function() {
 	);
 } );
 
+test( "value", function( assert ) {
+	expect( 4 );
+
+	var date = new Date( 2016, 5 - 1, 23 );
+
+	assert.equal( element.calendar( "option", "value" ), null, "Initial value" );
+
+	element.calendar( "option", "value", date );
+	assert.dateEqual( element.calendar( "option", "value" ), date, "Value set" );
+	equal( widget.find( "table button.ui-state-active" ).data( "timestamp" ), 1463954400000, "Active button timestamp" );
+
+	element.calendar( "option", "value", "invalid" );
+	assert.dateEqual( element.calendar( "option", "value" ), date, "Value after invalid parameter" );
+} );
+
 /*
 // TODO: Move this to $.date, Globalize or calendar widget
 test( "daylightSaving", function() {
