@@ -52,6 +52,45 @@ test( "appendTo", function() {
 	equal( container, detached[ 0 ], "detached DOM element" );
 } );
 
+test( "min / max", function( assert ) {
+	expect( 10 );
+
+	var min, max;
+
+	element.datepicker( "option", { min: "10/20/08", max: "10/25/08" } );
+	assert.dateEqual( element.datepicker( "option", "min" ), new Date( 2008, 10 - 1, 20 ), "Set min option as string" );
+	assert.dateEqual( element.datepicker( "option", "max" ), new Date( 2008, 10 - 1, 25 ), "Set max option as string" );
+
+	min = new Date( 2009, 10 - 1, 20 );
+	max = new Date( 2009, 10 - 1, 25 );
+	element.datepicker( "option", { min: min, max: max } );
+	assert.dateEqual( element.datepicker( "option", "min" ), min, "Set min option as date object" );
+	assert.dateEqual( element.datepicker( "option", "max" ), max, "Set max option as date object" );
+
+	element
+		.datepicker( "destroy" )
+		.attr( "min", "2010-10-20" )
+		.attr( "max", "2010-10-25" )
+		.datepicker();
+	assert.dateEqual( element.datepicker( "option", "min" ), new Date( 2010, 10 - 1, 20 ), "Set min option as attribute" );
+	assert.dateEqual( element.datepicker( "option", "max" ), new Date( 2010, 10 - 1, 25 ), "Set max option as attribute" );
+
+	min = new Date( 2011, 10 - 1, 20 );
+	max = new Date( 2011, 10 - 1, 25 );
+	element
+		.datepicker( "destroy" )
+		.datepicker( { min: min, max: max } );
+	assert.dateEqual( element.datepicker( "option", "min" ), new Date( 2011, 10 - 1, 20 ), "Set min option as date object on init" );
+	assert.dateEqual( element.datepicker( "option", "max" ), new Date( 2011, 10 - 1, 25 ), "Set max option as date object on init" );
+
+	element
+		.datepicker( "destroy" )
+		.datepicker( { min: "10/20/12", max: "10/25/12" } );
+	assert.dateEqual( element.datepicker( "option", "min" ), new Date( 2012, 10 - 1, 20 ), "Set min option as string on init" );
+	assert.dateEqual( element.datepicker( "option", "max" ), new Date( 2012, 10 - 1, 25 ), "Set max option as string on init" );
+
+} );
+
 test( "Pass-through options", function() {
 	expect( 11 );
 
