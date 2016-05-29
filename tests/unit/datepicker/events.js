@@ -42,6 +42,35 @@ test( "beforeOpen", function() {
 		.datepicker( "open" );
 } );
 
+test( "change", function() {
+	expect( 4 );
+
+	var shouldFire;
+
+	element.datepicker( {
+		change: function( event ) {
+			ok( shouldFire, "change event fired" );
+			equal(
+				event.type,
+				"datepickerchange",
+				"change event"
+			);
+		}
+	} );
+
+	shouldFire = true;
+	element.datepicker( "open" );
+	widget.find( "tbody button" ).eq( 1 ).simulate( "mousedown" );
+
+	shouldFire = false;
+	element.datepicker( "open" );
+	widget.find( "tbody button" ).eq( 1 ).simulate( "mousedown" );
+
+	shouldFire = true;
+	element.datepicker( "open" );
+	widget.find( "tbody button" ).eq( 2 ).simulate( "mousedown" );
+} );
+
 test( "close", function() {
 	expect( 4 );
 
@@ -71,7 +100,7 @@ test( "close", function() {
 	shouldFire = false;
 	element.datepicker( "open" );
 	shouldFire = true;
-	element.datepicker( "widget" ).find( "tbody tr:first button:first" ).simulate( "mousedown" );
+	widget.find( "tbody tr:first button:first" ).simulate( "mousedown" );
 } );
 
 test( "open", function() {
